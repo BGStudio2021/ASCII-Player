@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>字符画播放器</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: #333;
+            color: #fff;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            padding: 12px 32px;
+            border-radius: 99999999999px;
+            background: #fff;
+            color: #333;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #ddd;
+        }
+
+        button:active {
+            background: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="text-align: center;">
+        <h1 style="margin: 32px 0;">字符画播放器</h1>
+        <button onclick="recordASCII();" style="margin-bottom: 32px;">录制字符画</button>
+        <button onclick="playASCII();" style="margin-left: 32px;">播放字符画</button>
+        <br>
+        <video id="video" style="width: 80%;display: none;"></video>
+        <canvas id="canvas" width="288" height="216"></canvas>
+        <div style="margin: 32px 0;line-height: 1vw;font-size: 1vw;" id="ASCIIScreen"></div>
+        <p style="text-align: center;margin: 32px 0;">Made by Burger Studio.</p>
+    </div>
+    <script>
+        var video = document.getElementById("video");
+        function recordASCII() {
+            var input = document.createElement("input");
+            input.type = "file";
+            input.accept = "video/*";
+            input.onchange = function () {
+                var file = this.files[0];
+                var url = URL.createObjectURL(file);
+                video.src = url;
+                video.controls = true;
+                video.play();
+            };
+            input.click();
+        }
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+        var resultArr = [];
+        video.addEventListener("play", function () {
+            var interval = setInterval(function () {
+                if (video.paused || video.ended) {
+                    clearInterval(interval);
+                    var compressedResult = LZString.compressToBase64(resultArr.join('\n\n'));
+                    var a = document.createElement("a");
+                    a.href = "data:text/plain;charset=utf-8," + compressedResult;
+                    a.download = "result.txt";
+                    a.click();
+                    return;
+                }
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                var data = imageData.data;
+                var width = canvas.width;
+                var height = canvas.height;
+                var resultStr = '';
+                for (var i = 0; i < height; i += 4) {
+                    for (var j = 0; j < width; j += 4) {
+                        var r = data[(i * width + j) * 4];
+                        var g = data[(i * width + j) * 4 + 1];
+                        var b = data[(i * width + j) * 4 + 2];
+                        var a = data[(i * width + j) * 4 + 3];
+                        if (r + g + b < 300) {
+                            resultStr += '0';
+                        } else {
+                            resultStr += '1';
+                        }
+                    }
+                    resultStr += '\n';
+                }
+                resultArr.push(resultStr);
+                ctx.putImageData(imageData, 0, 0);
+            }, 1000 / 30);
+        });
+        var ASCIIScreen = document.getElementById("ASCIIScreen");
+        function playASCII() {
+            var input = document.createElement("input");
+            input.type = "file";
+            input.accept = "text/*";
+            input.onchange = function () {
+                var file = this.files[0];
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var compressedResult = e.target.result;
+                    var decompressedResult = LZString.decompressFromBase64(compressedResult);
+                    var frames = decompressedResult.split('\n\n');
+                    var currentFrame = 0;
+                    var interval = setInterval(function () {
+                        if (currentFrame >= frames.length) {
+                            clearInterval(interval);
+                            return;
+                        }
+                        var frame = frames[currentFrame];
+                        ASCIIScreen.innerHTML = frame.replaceAll('0', '■').replaceAll('1', '□');
+                        currentFrame++;
+                    }, 1000 / 30);
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+        console.log("这是我录制字符画所使用的工具。\n视频暂停或结束时会自动生成结果文件（使用 LZString 压缩）。");
+    </script>
+    <script src="lz-string.min.js"></script>
+</body>
+
+</html>

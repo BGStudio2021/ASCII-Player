@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>礼崩乐坏播放器播放器</title>
+    <style>
+        html,
+        body {
+            background: #333;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            padding: 12px 32px;
+            border-radius: 99999999999px;
+            background: #fff;
+            color: #333;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #ddd;
+        }
+
+        button:active {
+            background: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 style="margin: 64px 0;text-align: center;">礼崩乐坏播放器</h1>
+    <div style="text-align: center;">
+        <button onclick="input.click();" style="margin-bottom: 32px;">选择音频文件</button>
+        <br>
+        <button onclick="randomPlay();" style="margin-bottom: 32px;">随机进度播放</button>
+        <button onclick="acceleratePlay();" style="margin-left: 16px;">加速播放</button>
+        <button onclick="deceleratePlay();" style="margin-left: 16px;">减速播放</button>
+        <button onclick="sinSpeedPlay();" style="margin-left: 16px;">正弦速度播放</button>
+        <button onclick="randomSpeedPlay();" style="margin-left: 16px;">随机速度播放</button>
+        <button onclick="sliceReverse();" style="margin-left: 16px;">切片倒放</button>
+        <br>
+        <audio id="audio" controls style="margin-top: 16px;"></audio>
+    </div>
+    <input type="file" accept="audio/*" id="input" style="display: none;">
+    <script>
+        const input = document.getElementById('input');
+        const audio = document.getElementById('audio');
+        var interval;
+        var duration;
+        input.addEventListener('change', function () {
+            const file = this.files[0];
+            const url = URL.createObjectURL(file);
+            audio.src = url;
+            audio.play();
+        });
+        function randomPlay() {
+            clearInterval(interval);
+            duration = audio.duration;
+            interval = setInterval(function () {
+                audio.currentTime = Math.random() * duration;
+            }, 100);
+        }
+        function acceleratePlay() {
+            clearInterval(interval);
+            interval = setInterval(function () {
+                audio.playbackRate += 0.01;
+            }, 100);
+        }
+        function deceleratePlay() {
+            clearInterval(interval);
+            interval = setInterval(function () {
+                audio.playbackRate -= 0.01;
+            }, 100);
+        }
+        function sinSpeedPlay() {
+            clearInterval(interval);
+            var startTime = new Date().getTime();
+            audio.playbackRate = 1;
+            interval = setInterval(function () {
+                audio.playbackRate = (Math.sin((new Date().getTime() - startTime) / 1000 / 2) + 1) * 1.5;
+            }, 100);
+        }
+        function randomSpeedPlay() {
+            clearInterval(interval);
+            interval = setInterval(function () {
+                audio.playbackRate = Math.random() * 3;
+            }, 100);
+        }
+        function sliceReverse() {
+            clearInterval(interval);
+            duration = audio.duration;
+            var sliceSize = 0.5;
+            audio.currentTime = audio.duration - sliceSize * 2;
+            interval = setInterval(function () {
+                audio.currentTime -= sliceSize * 2;
+            }, sliceSize * 1000);
+        }
+    </script>
+</body>
+
+</html>

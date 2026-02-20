@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>礼崩乐坏播放器</title>
+    <style>
+        html,
+        body {
+            background: #333;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            padding: 12px 32px;
+            border-radius: 99999999999px;
+            background: #fff;
+            color: #333;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #ddd;
+        }
+
+        button:active {
+            background: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 style="margin: 64px 0;text-align: center;">礼崩乐坏播放器</h1>
+    <div style="text-align: center;">
+        <button onclick="input.click();" style="margin-bottom: 32px;">选择视频文件</button>
+        <br>
+        <button onclick="randomPlay();">随机进度播放</button>
+        <button onclick="acceleratePlay();" style="margin-left: 16px;">加速播放</button>
+        <button onclick="deceleratePlay();" style="margin-left: 16px;">减速播放</button>
+        <button onclick="sinSpeedPlay();" style="margin-left: 16px;">正弦速度播放</button>
+        <button onclick="randomSpeedPlay();" style="margin-left: 16px;">随机速度播放</button>
+        <button onclick="sliceReverse();" style="margin-left: 16px;">切片倒放</button>
+        <br>
+        <button onclick="enableFilter('url(#filter-turbulence)');" style="margin: 32px 0;">启用湍流</button>
+        <button onclick="enableFilter('url(#filter-dilate)');" style="margin-left: 16px;">启用膨胀</button>
+        <button onclick="enableFilter('url(#filter-erode)');" style="margin-left: 16px;">启用腐蚀</button>
+        <button onclick="enableFilter('url(#filter-blend)');" style="margin-left: 16px;">启用混合</button>
+        <button onclick="clearFilters();" style="margin-left: 16px;">清除滤镜</button>
+        <br>
+        <video id="video" controls style="margin-top: 16px;width: 80%;"></video>
+        <br>
+        <p style="text-align: center;margin-top: 32px;">Made by Burger Studio.</p>
+    </div>
+    <input type="file" accept="video/*" id="input" style="display: none;">
+    <svg>
+        <defs>
+            <filter id="filter-turbulence">
+                <feTurbulence baseFrequency="0" numOctaves="3" seed="42" type="fractalNoise">
+                    <animate attributeName="baseFrequency" values="0;0.1;0" dur="240s" repeatCount="indefinite" />
+                </feTurbulence>
+                <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="100" in="SourceGraphic" />
+            </filter>
+            <filter id="filter-dilate">
+                <feMorphology radius="10" operator="dilate" id="dilate" />
+            </filter>
+            <filter id="filter-erode">
+                <feMorphology radius="10" operator="erode" id="erode" />
+            </filter>
+            <filter id="filter-blend">
+                <feImage href="blend-bg.png" result="img" />
+                <feBlend in="SourceGraphic" in2="img" mode="multiply" />
+            </filter>
+        </defs>
+    </svg>
+    <script>
+        const input = document.getElementById('input');
+        const video = document.getElementById('video');
+        var interval;
+        var duration;
+        input.addEventListener('change', function () {
+            const file = this.files[0];
+            const url = URL.createObjectURL(file);
+            video.src = url;
+            video.play();
+        });
+        function randomPlay() {
+            clearInterval(interval);
+            duration = video.duration;
+            interval = setInterval(function () {
+                video.currentTime = Math.random() * duration;
+            }, 100);
+        }
+        function acceleratePlay() {
+            clearInterval(interval);
+            interval = setInterval(function () {
+                video.playbackRate += 0.01;
+            }, 100);
+        }
+        function deceleratePlay() {
+            clearInterval(interval);
+            interval = setInterval(function () {
+                video.playbackRate -= 0.01;
+            }, 100);
+        }
+        function sinSpeedPlay() {
+            clearInterval(interval);
+            var startTime = new Date().getTime();
+            video.playbackRate = 1;
+            interval = setInterval(function () {
+                video.playbackRate = (Math.sin((new Date().getTime() - startTime) / 1000 / 2) + 1) * 1.5;
+            }, 100);
+        }
+        function randomSpeedPlay() {
+            clearInterval(interval);
+            interval = setInterval(function () {
+                video.playbackRate = Math.random() * 3;
+            }, 100);
+        }
+        function sliceReverse() {
+            clearInterval(interval);
+            duration = video.duration;
+            var sliceSize = 0.5;
+            video.currentTime = video.duration - sliceSize * 2;
+            interval = setInterval(function () {
+                video.currentTime -= sliceSize * 2;
+            }, sliceSize * 1000);
+        }
+        function enableFilter(filterStr) {
+            video.style.filter += ' ' + filterStr;
+        }
+        function clearFilters() {
+            video.style.filter = "";
+        }
+    </script>
+</body>
+
+</html>

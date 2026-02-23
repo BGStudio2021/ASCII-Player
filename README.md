@@ -2,6 +2,9 @@
 《Bad Apple!!》字符画播放器项目备份。
 ## recorder.html
 这是我录制字符画视频用的临时工具。
+## ASCII-Player-Direct.html
+**这个工具可以用彩色 emoji 字符显示任何图片或视频。支持拖拽和粘贴导入文件。**
+<br>不过由于颜色有限，目前最多只能用 9 种颜色显示，画面风格会比较怪。
 ## Bad Apple!! Player - Char.html
 这个页面可以让你用任意两个字符搭配播放《Bad Apple!!》（实际上也可以使用 HTML 标签）。
 ## Bad Apple!! Player - Style.html

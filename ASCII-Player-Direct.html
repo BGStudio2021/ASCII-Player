@@ -68,10 +68,14 @@
 
 <body>
     <div style="text-align: center;">
-        <h1 style="margin: 32px 0;">字符画显示器</h1>
-        <button onclick="selectVideo();" style="margin-bottom: 32px;">选择视频</button>
-        <button onclick="selectImage();" style="margin-left: 16px;">选择图片</button>
-        <button onclick="switchFullscreen();" style="margin-left: 16px;">切换全屏</button>
+        <h1 style="margin: 32px 0 16px 0;">字符画显示器</h1>
+        <div style="margin-bottom: 16px;">
+            <button onclick="selectVideo();" style="margin: 16px;">选择视频</button>
+            <button onclick="selectImage();" style="margin: 16px;">选择图片</button>
+            <button onclick="useCamera();" style="margin: 16px;">调用摄像头</button>
+            <button onclick="copyScreen();" style="margin: 16px;">复制字符画</button>
+            <button onclick="switchFullscreen();" style="margin: 16px;">切换全屏</button>
+        </div>
         <div style="margin-bottom: 16px;">
             <label for="range_fontSize" style="display: inline;vertical-align: middle;">字体大小</label>
             <input type="range" min="1" max="20" value="17" id="range_fontSize" oninput="adjustFontSize();"
@@ -107,6 +111,7 @@
         var refColorList = [[232, 66, 86], [252, 134, 74], [239, 191, 76], [92, 222, 149], [72, 134, 214], [132, 102, 192], [136, 88, 86], [0, 0, 0], [255, 255, 255]];
         var charList = ["🔴", "🟠", "🟡", "🟢", "🔵", "🟣", "🟤", "⚫", "⚪"];
         var imgMode = false;
+        var cameraOn = false;
         // 定时刷新字符画屏幕
         window.onload = function () {
             var interval = setInterval(function () {
@@ -149,6 +154,9 @@
         }
         // 选择视频 / 图片
         function selectVideo() {
+            if (cameraOn) {
+                stopCamera();
+            }
             var input = document.createElement("input");
             input.type = "file";
             input.accept = "video/*";
@@ -160,6 +168,9 @@
             input.click();
         }
         function selectImage() {
+            if (cameraOn) {
+                stopCamera();
+            }
             var input = document.createElement("input");
             input.type = "file";
             input.accept = "image/*";
@@ -169,6 +180,35 @@
                 img.src = url;
             };
             input.click();
+        }
+        // 调用摄像头
+        function useCamera() {
+            if (cameraOn) {
+                stopCamera();
+            } else {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: false
+                    }).then(function (stream) {
+                        video.srcObject = stream;
+                        setImgMode(false);
+                        video.play();
+                        cameraOn = true;
+                    }).catch(function (err) {
+                        console.log(err.name + ": " + err.message);
+                    });
+                } else {
+                    alert("你的浏览器不支持摄像头功能。");
+                }
+            }
+        }
+        // 停止调用摄像头
+        function stopCamera() {
+            video.pause();
+            video.srcObject.getTracks()[0].stop();
+            video.srcObject = null;
+            cameraOn = false;
         }
         // 自动切换显示模式
         video.onloadedmetadata = function () {
@@ -206,6 +246,17 @@
         function adjustCompression() {
             compression = parseInt(document.getElementById('range_compression').value);
             refreshScreen();
+        }
+        // 复制字符画
+        function copyScreen() {
+            var content = ASCIIScreen.innerHTML.replaceAll('<br>', '\n');
+            let copy = (e) => {
+                e.preventDefault();
+                e.clipboardData.setData('text/plain', content);
+                document.removeEventListener('copy', copy);
+            }
+            document.addEventListener('copy', copy);
+            document.execCommand("Copy");
         }
         // 切换全屏
         function switchFullscreen() {
@@ -245,6 +296,9 @@
         });
         // 处理导入的文件
         function handleDragCopy(file) {
+            if (cameraOn) {
+                stopCamera();
+            }
             var type = file.type;
             var url = URL.createObjectURL(file);
             if (type.indexOf('video') >= 0) {
@@ -257,7 +311,6 @@
             }
         }
     </script>
-    <script src="lz-string.min.js"></script>
 </body>
 
 </html>

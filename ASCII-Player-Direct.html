@@ -72,7 +72,8 @@
         <div style="margin-bottom: 16px;">
             <button onclick="selectVideo();" style="margin: 16px;">选择视频</button>
             <button onclick="selectImage();" style="margin: 16px;">选择图片</button>
-            <button onclick="useCamera();" style="margin: 16px;">调用摄像头</button>
+            <button onclick="useCamera();" style="margin: 16px;" id="btn_useCamera">调用相机</button>
+            <button onclick="switchCamera();" style="margin: 16px;">切换相机</button>
             <button onclick="copyScreen();" style="margin: 16px;">复制字符画</button>
             <button onclick="switchFullscreen();" style="margin: 16px;">切换全屏</button>
         </div>
@@ -112,6 +113,7 @@
         var charList = ["🔴", "🟠", "🟡", "🟢", "🔵", "🟣", "🟤", "⚫", "⚪"];
         var imgMode = false;
         var cameraOn = false;
+        var camera_facing = "environment";
         // 定时刷新字符画屏幕
         window.onload = function () {
             var interval = setInterval(function () {
@@ -181,34 +183,48 @@
             };
             input.click();
         }
-        // 调用摄像头
+        // 调用相机
         function useCamera() {
             if (cameraOn) {
                 stopCamera();
             } else {
                 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                     navigator.mediaDevices.getUserMedia({
-                        video: true,
+                        video: {
+                            facingMode: {
+                                exact: camera_facing
+                            }
+                        },
                         audio: false
                     }).then(function (stream) {
                         video.srcObject = stream;
                         setImgMode(false);
                         video.play();
                         cameraOn = true;
+                        document.getElementById("btn_useCamera").innerText = "关闭相机";
                     }).catch(function (err) {
                         console.log(err.name + ": " + err.message);
                     });
                 } else {
-                    alert("你的浏览器不支持摄像头功能。");
+                    alert("无法调用相机。");
                 }
             }
         }
-        // 停止调用摄像头
+        // 停止调用相机
         function stopCamera() {
             video.pause();
             video.srcObject.getTracks()[0].stop();
             video.srcObject = null;
             cameraOn = false;
+            document.getElementById("btn_useCamera").innerText = "调用相机";
+        }
+        // 切换相机
+        function switchCamera() {
+            if (cameraOn) {
+                stopCamera();
+            }
+            camera_facing = camera_facing == 'environment' ? 'user' : 'environment';
+            useCamera();
         }
         // 自动切换显示模式
         video.onloadedmetadata = function () {
